@@ -2,7 +2,7 @@
 import React, { useEffect } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import Loader from "../components/Loader";
+import Loader from "../../components/Loader";
 import { Calendar, Mail, User, Package, Lock, Edit3, Shield, Settings } from "lucide-react";
 
 const Profile = () => {

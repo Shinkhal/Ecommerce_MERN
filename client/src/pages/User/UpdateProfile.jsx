@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { clearErrors, updateProfile, loadUser } from "../actions/userAction";
-import { UPDATE_PROFILE_RESET } from "../constants/userConstants";
+import { clearErrors, updateProfile, loadUser } from "../../actions/userAction";
+import { UPDATE_PROFILE_RESET } from "../../constants/userConstants";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import Loader from "../components/Loader";
+import Loader from "../../components/Loader";
 import { User, Mail, Camera, Save, Upload } from "lucide-react";
 
 const UpdateProfile = () => {

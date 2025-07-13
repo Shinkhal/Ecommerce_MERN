@@ -4,7 +4,6 @@ import { useSelector } from "react-redux";
 import {
   ShoppingCart,
   User,
-  Search,
   Menu,
 } from "lucide-react";
 
@@ -32,16 +31,13 @@ const Header = () => {
         <nav className="hidden md:flex space-x-6 text-gray-700 font-medium">
           <Link to="/">Home</Link>
           <Link to="/products">Products</Link>
-          <Link to="/contact">Contact</Link>
           <Link to="/about">About</Link>
+          <Link to="/contact">Contact</Link>
         </nav>
 
         {/* Right-hand icons */}
         <div className="flex items-center space-x-4">
-          {/* Search */}
-          <Link to="/search" className="group relative">
-            <Search className="w-5 h-5 text-gray-700 group-hover:text-indigo-600" />
-          </Link>
+         
 
           {/* Cart */}
           <Link to="/cart" className="group relative">

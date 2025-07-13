@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { clearErrors, myOrders } from "../actions/orderAction";
-import Loader from "../components/Loader"
+import { clearErrors, myOrders } from "../../actions/orderAction";
+import Loader from "../../components/Loader"
 import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ExternalLink, PackageCheck, PackageX } from "lucide-react";
