@@ -1,6 +1,16 @@
-const app = require("./app");
+const express = require("express");
+const dotenv = require("dotenv");
+const cookieParser = require("cookie-parser");
+const bodyParser = require("body-parser");
+const fileUpload = require("express-fileupload");
+const cors = require("cors");
 const cloudinary = require("cloudinary");
+const errorMiddleware = require("./middleware/error");
+
 const connectDatabase = require("./config/database");
+
+// Load env variables from root .env
+dotenv.config();
 
 // Handle Uncaught Exceptions
 process.on("uncaughtException", (err) => {
@@ -8,27 +18,42 @@ process.on("uncaughtException", (err) => {
   process.exit(1);
 });
 
-// Load environment variables
-require("dotenv").config({ path: "backend/config/config.env" });
+const app = express();
 
-// Connect to database
-connectDatabase();
+// === MIDDLEWARES ===
+app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(express.json({ limit: "50mb" }));
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(fileUpload());
 
-// Configure Cloudinary
+// === HEALTH CHECK ===
+app.get("/api/v1/health", (req, res) => {
+  res.status(200).json({ success: true, message: "API is healthy!" });
+});
+
+// === ROUTES ===
+app.use("/api/v1", require("./routes/productRoute"));
+app.use("/api/v1", require("./routes/userRoute"));
+app.use("/api/v1", require("./routes/orderRoute"));
+app.use("/api/v1", require("./routes/paymentRoute"));
+
+
+
+
+// === CLOUDINARY CONFIG ===
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Start server
+// === START SERVER ===
 const PORT = process.env.PORT || 5000;
-const server = app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
 
-// Handle Unhandled Promise Rejections
-process.on("unhandledRejection", (err) => {
-  console.error(`Unhandled Rejection: ${err.message}`);
-  server.close(() => process.exit(1));
+connectDatabase().then(() => {
+  app.listen(PORT, () =>
+    console.log(`Server is running on http://localhost:${PORT}`)
+  );
+
 });
