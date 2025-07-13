@@ -1,9 +1,23 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import axios from "axios";
+
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import { loadUser } from "./actions/userAction";
+
+// Stripe
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
+
+// Toast
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 // Layout
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import UserOptions from "./components/UserOptions";
 
 // Pages
 import Home from "./pages/Home";
@@ -23,7 +37,7 @@ import Payment from "./pages/Cart/Payment";
 import OrderSuccess from "./components/Success";
 import NotFound from "./pages/NotFound";
 
-// Admin Dashboard
+// Admin
 import AdminDashboard from "./Admin/Dashboard";
 import NewProduct from "./Admin/NewProduct";
 import OrderList from "./Admin/OderList";
@@ -36,18 +50,44 @@ import ProductReviews from "./Admin/Reviews";
 // Protected Route
 import ProtectedRoute from "./pages/Protected";
 
-// Toast
-import { ToastContainer } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-
 const App = () => {
+  const dispatch = useDispatch();
+  const { isAuthenticated, user } = useSelector((state) => state.user);
+
+  const [stripeApiKey, setStripeApiKey] = useState("");
+
+  useEffect(() => {
+
+    // Load user
+    dispatch(loadUser());
+
+    // Fetch Stripe API key
+    const getStripeApiKey = async () => {
+      try {
+        const { data } = await axios.get("/api/v1/stripeapikey");
+        setStripeApiKey(data.stripeApiKey);
+      } catch (error) {
+        console.error("Error loading Stripe API key:", error);
+      }
+    };
+
+    getStripeApiKey();
+
+    // Disable right-click
+    const disableContextMenu = (e) => e.preventDefault();
+    window.addEventListener("contextmenu", disableContextMenu);
+    return () => {
+      window.removeEventListener("contextmenu", disableContextMenu);
+    };
+  }, [dispatch]);
+
   return (
     <Router>
-      {/* Global Toast Notifications */}
+      {/* Toast */}
       <ToastContainer
         position="bottom-right"
         autoClose={3000}
-        newestOnTop={true}
+        newestOnTop
         closeOnClick
         pauseOnFocusLoss
         draggable
@@ -58,7 +98,9 @@ const App = () => {
       {/* Header */}
       <Header />
 
-      {/* Main Routes */}
+      {/* Show user options if logged in */}
+      {isAuthenticated && <UserOptions user={user} />}
+
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
@@ -69,10 +111,21 @@ const App = () => {
         <Route path="/cart" element={<Cart />} />
         <Route path="/shipping" element={<Shipping />} />
         <Route path="/confirm" element={<ConfirmOrder />} />
-        <Route path="/process/payment" element={<Payment />} />
         <Route path="/success" element={<OrderSuccess />} />
 
-        {/* 🔐 Protected User Routes */}
+        {/* Stripe Payment (only load if key exists) */}
+        {stripeApiKey && (
+          <Route
+            path="/process/payment"
+            element={
+              <Elements stripe={loadStripe(stripeApiKey)}>
+                <Payment />
+              </Elements>
+            }
+          />
+        )}
+
+        {/* Protected Routes (User) */}
         <Route element={<ProtectedRoute />}>
           <Route path="/account" element={<Profile />} />
           <Route path="/me/update" element={<UpdateProfile />} />
@@ -81,7 +134,7 @@ const App = () => {
           <Route path="/order/:id" element={<OrderDetails />} />
         </Route>
 
-        {/* 🔐 Example Admin Protected Routes (Uncomment & add components as needed) */}
+        {/* Protected Routes (Admin) */}
         <Route element={<ProtectedRoute isAdmin />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/product" element={<NewProduct />} />
@@ -91,10 +144,9 @@ const App = () => {
           <Route path="/admin/product/:id" element={<UpdateProduct />} />
           <Route path="/admin/order/:id" element={<ProcessOrder />} />
           <Route path="/admin/reviews" element={<ProductReviews />} />
-          {/* Add more admin routes here */}
         </Route>
 
-        {/* 404 - Not Found */}
+        {/* 404 Not Found */}
         <Route path="*" element={<NotFound />} />
       </Routes>
 
